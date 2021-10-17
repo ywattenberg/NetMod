@@ -8,7 +8,8 @@ output: html_document
 # Task 1
 ## 1)
 The probability for observing a tie is equal to the amount of present ties divided by the number of total possible ties.
-Let n = \# of dyads then:
+Let $n = \# \text{of dyads then}$:
+
 $p = \frac{\# \text{of ties}}{\# \text{of possible ties}} = \frac{m}{n \cdot (n-1)} = \frac{174}{1190} \approx 0.146$
 
 
