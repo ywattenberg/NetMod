@@ -34,9 +34,21 @@ cugTrans
 ```{r}
 set.seed(1908)
 permutations <- 5000
-trade2006 <- as.matrix(read.csv("trade1.csv"))
-trade2007 <- as.matrix(read.csv("trade2.csv"))
+trade2006 <- as.matrix(read.csv("trade1.csv", header=FALSE))
+trade2007 <- as.matrix(read.csv("trade2.csv", header=FALSE))
 attr <- read.csv("attr.csv")
 nl0 <- netlm(trade2007, trade2006, rep=permutations, nullhyp="qapy")
 summary(nl0)
+
+##### 2
+
+sector <- attr[,2]
+sameSector <- outer(sector,sector,"==")*1
+diag(sameSector) <- FALSE
+
+SectorSender <- matrix(sector,18,18,byrow=FALSE) # Hp. 2
+
+zm <- list(SectorSender, sameSector)
+nl <- netlm(trade2007, zm, rep=permutations, nullhyp="qapspp")
+nl$names <- c("intercept", "sameSector", "SectorSender")
 ```
