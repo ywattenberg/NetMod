@@ -72,24 +72,84 @@ We think that the second test doesn't make sense because we are testing for the 
 
 # Task 2
 
+## 1)
+
 ```{r}
 set.seed(1908)
-permutations <- 5000
+library(sna)
+library(network)
+```
+
+```{r echo=TRUE}
 trade2006 <- as.matrix(read.csv("trade1.csv", header=FALSE))
 trade2007 <- as.matrix(read.csv("trade2.csv", header=FALSE))
 attr <- read.csv("attr.csv")
-nl0 <- netlm(trade2007, trade2006, rep=permutations, nullhyp="qapy")
-summary(nl0)
 
-##### 2
+permutations <- 5000
 
-sector <- attr[,2]
-sameSector <- outer(sector,sector,"==")*1
-diag(sameSector) <- FALSE
+res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=T)
+res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=F)
+res_netlm$names <- c("intercept", "trade_06")
 
-SectorSender <- matrix(sector,18,18,byrow=FALSE) # Hp. 2
+summary(res_netlm)
 
-zm <- list(SectorSender, sameSector)
-nl <- netlm(trade2007, zm, rep=permutations, nullhyp="qapspp")
-nl$names <- c("intercept", "sameSector", "SectorSender")
+res_nice <- cbind(res_netlm$coefficients, res_netlm$pgreqabs)
+colnames(res_nice) <- c("Est.", "p-value")
+rownames(res_nice) <- res_netlm$names
+res_nice
 ```
+- Should we use an intercept or not??
+
+
+## 2)
+```{r}
+# Hp 1
+sector <- attr[,2]
+same_sector <- outer(sector,sector,"==")*1
+
+# Hp 2
+sector_sender_private <- matrix(sector,18,18,byrow=FALSE)
+```
+
+## 3)
+```{r}
+zm <- list(same_sector, sector_sender_private)
+res_netlm <- netlm(trade2007, zm, reps=permutations, nullhyp="qapspp")
+res_netlm$names <- c("intercept", "same_sector", "sector_sender_private")
+summary(res_netlm)
+```
+The parameter "same_sector" is significantly different from 0 at the significance level $\alpha=0.05$. The parameter indicates that a company which sells goods to another company in the same sector sells 1.1 million CHF less than to another company which is not in the same sector, holding all other variables constant. Thus, the data does not support Hp. 1.
+
+The paramter "sector_sender_private" is not significantly different from 0 at the significance level $\alpha=0.05$. It indicates that companies in the private sector sell 0.14 million CHF more goods than companies which are in the public sector but this relationship is not statistically significant. Therefore, the data does not support Hp 2. 
+
+## 4)
+Hp. 3 (size of companies): If the number of employees of a company increases then the amounts of goods sold increases too. 
+
+Hp. 4 (region): The amounts of goods sold by a company is higher if the company which sells is in region A or B than the amount of goods sold by a company which is in region C.
+
+```{r}
+# Hp 3.
+size_sender <- attr$size
+
+# Hp.4
+region_AB <- (attr$region == 1 | attr$region == 2)*1
+region_AB_sender <- matrix(region_AB,18,18,byrow=FALSE)
+```
+
+## 5)
+```{r}
+zm <- list(same_sector, sector_sender_private, size_sender, region_AB_sender)
+res_netlm <- netlm(trade2007, zm, reps=permutations, nullhyp="qapspp")
+res_netlm$names <- c(
+  "intercept",
+  "same_sector",
+  "sector_sender_private",
+  "size_sender",
+  "region_AB_sender"
+)
+summary(res_netlm)
+```
+
+The parameter "size_sender" is significantly different from 0 at the significance level $\alpha=0.05$. The parameter indicates that for each additional employee the company sells 0.039 million CHF more goods. The data supports Hp 3.
+
+The parameter "region_AB_sender" indicates that companies which operate in the region A or B sell 0.014 million CHF less goods than companies which operate in region C. Since the parameter is not statistically significant from 0 at the significance level $\alpha=0.05$ the data does not support Hp 4.    
