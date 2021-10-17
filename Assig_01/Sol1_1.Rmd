@@ -39,6 +39,7 @@ The probability of observing mutual dyads in the network is four times higher th
 is more than two times higher when assuming tie independence, for null dyads the probability of observation is 6.6\% lower when assuming tie independence.
 Given the differences in probability for mutual and asymmetric dyads we would argue that assuming tie independence would not be reasonable.
 
+
 ```{r setup, include=FALSE}
 
 set.seed(1908)
@@ -55,12 +56,18 @@ cugTrans
 
 
 ```
+## 5)
+### 5.1)
+The hypothesis of the first test is that the dyadic reciprocity of the graph is higher/(lower) than expected by chance. The test is conditioned on the edges that means on the network density or number of edges in the network or $U|p$ where p denotes the network density. 
 
+The hypothesis of the second test is the same as for the first test but here we condition on the dyad census. Conditioning on the dyad census here means we condition on the count mutual, asymmetric, and null dyads or $U|MAN$
 
+The hypothesis of the last test is that the amount of transitive relations (ties) that is observed is higher than the amount expected conditioned on the dyad census.
 
+### 5.2)
+We think that the second test doesn't make sense because we are testing for the reciprocity of ties conditioned on dyad census. But the dyad census contains the proportion of mutual ties which is equal to the reciprocity of the network by definition. This is also shown in the test results showing we get exactly the value that we observed.
 
-# Task 1
-## 1) /( /frac{174}{35*34) /)
+### 5.3)
 
 
 # Task 2
