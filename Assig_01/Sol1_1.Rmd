@@ -15,7 +15,7 @@ $p = \frac{\# \text{of ties}}{\# \text{of possible ties}} = \frac{m}{n \cdot (n-
 
 ## 2)
 The probability of observing a specific type of dyad (mutual, asymmetric and null) is the number of dyads of that type divided by the number of total possible dyads.
-Let $T = {n \choose 2} = \# \text{of dyads}$
+Let $T = {n \choose 2} = \# \text{of dyads}$:
 
 $p_M = \frac{M}{T} = \frac{52}{595} \approx 0.087$
 
@@ -26,6 +26,7 @@ $p_N = \frac{N}{T} = \frac{473}{595} \approx 0.795$
 
 ## 3)
 Assuming tie independence with $p = 0.146$ as the probability that a tie exists we get the following values:
+
 $p_M' = P[x_{ij} = 1 \cap x_{ji} = 1] \stackrel{\text{tie ind}.}{=} P[x_{ij} = 1] \cdot P[x_{ji} = 1] = p^2 \approx 0.021$
 
 $p_A' = P[x_{ij} = 1 \cap x_{ji} = 0] + P[x_{ij} = 0 \cap x_{ji} = 1]  \stackrel{\text{tie ind}.}{=}  2 \cdot P[x_{ij} = 1] \cdot P[x_{ji} = 0] = 2 \cdot p \cdot (1-p) \approx 0.25$
