@@ -74,31 +74,30 @@ We think that the second test doesn't make sense because we are testing for the 
 
 ## 1)
 
-```{r}
-set.seed(1908)
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(sna)
 library(network)
 ```
 
 ```{r echo=TRUE}
+set.seed(1908)
 trade2006 <- as.matrix(read.csv("trade1.csv", header=FALSE))
 trade2007 <- as.matrix(read.csv("trade2.csv", header=FALSE))
 attr <- read.csv("attr.csv")
 
 permutations <- 5000
 
-res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=T)
-#res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=F)
+res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapspp", intercept=T)
 res_netlm$names <- c("intercept", "trade_06")
 
-summary(res_netlm)
+#summary(res_netlm)
 
 res_nice <- cbind(res_netlm$coefficients, res_netlm$pgreqabs)
 colnames(res_nice) <- c("Est.", "p-value")
 rownames(res_nice) <- res_netlm$names
 res_nice
 ```
-- Should we use an intercept or not??
+The fitted model is: $X=2.1 + 0.5646 * trade\_06 + \epsilon$ where trade_06 is the adjacency matrix containing the amount of goods traded by company i to company j in 2006. The residual permutation method double semi-partialing (Dekker et al., 2007) was used to obtain empirical p-values. The intercept and slope (trade_06) are statistically significant on the significance level $alpha = 0.05$. Therefore, the data indicate that both parameters are different from 0. The relationship is positive which means that for each million CHF which is traded in 2006 the amount of goods traded in 2007 increases by 0.5646 million CHF.
 
 
 ## 2)
