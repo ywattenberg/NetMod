@@ -46,19 +46,22 @@ set.seed(1908)
 library(sna)
 library(network)
 obsMat <- as.matrix(read.csv("matrix.csv", header=F)) #header needs to be false, look at observed values again, they changed now
-cguRec1 <- cug.test(obsMat, grecip, cmode = "edges", reps = 3000)
-cguRec2 <- cug.test(obsMat, grecip, cmode = "dyad.census", reps = 3000)
+cugRec1 <- cug.test(obsMat, grecip, cmode = "edges", reps = 3000)
+cugRec2 <- cug.test(obsMat, grecip, cmode = "dyad.census", reps = 3000)
 cugTrans <- cug.test(obsMat, gtrans, cmode = "dyad.census",  reps = 3000)
 cguRec1
 cguRec2
 cugTrans
+plot(cguRec1)
+plot(cguRec2)
+plot(cugTrans)
 # look for what we're testing for with grecip (testing for both cases at once)
 #need to rephrase the hypothesis 
 
 ```
 ## 5)
 ### 5.1)
-The hypothesis of the first test is testing wether there is more reciprocity then density would suggest. The test is conditioned on the edges that means on the network density or number of edges in the network or $U|p$ where p denotes the network density. 
+The hypothesis of the first test is testing whether there is more reciprocity then density would suggest. The test is conditioned on the edges that means on the network density or number of edges in the network or $U|p$ where p denotes the network density. 
 
 The hypothesis of the second test is the same as for the first test but here we condition on the dyad census. Conditioning on the dyad census here means we condition on the count mutual, asymmetric, and null dyads or $U|MAN$
 
@@ -68,7 +71,9 @@ The hypothesis of the last test is that the amount of transitive relations (ties
 We think that the second test doesn't make sense because we are testing for the reciprocity of ties conditioned on dyad census. But the dyad census contains the proportion of mutual ties which is equal to the reciprocity of the network by definition. This is also shown in the test results showing we get exactly the value that we observed.
 
 ### 5.3)
-
+For the first hypothesis we can see that there is a strong indication that our network has more reciprocity then the density of our graph would let assume
+For the second hypothesis there is no significant indication that our graph has more reciprocity then the dyad census would let you assume
+For the third hypothesis there is also significant indication that our network has more transitivity then the dyad census would let you assume.
 
 # Task 2
 
