@@ -45,15 +45,15 @@ Given the differences in probability for mutual and asymmetric dyads we would ar
 set.seed(1908)
 library(sna)
 library(network)
-obsMat <- as.matrix(read.csv("matrix.csv"))
+obsMat <- as.matrix(read.csv("matrix.csv", header=F))
 cguRec1 <- cug.test(obsMat, grecip, cmode = "edges", reps = 3000)
 cguRec2 <- cug.test(obsMat, grecip, cmode = "dyad.census", reps = 3000)
 cugTrans <- cug.test(obsMat, gtrans, cmode = "dyad.census",  reps = 3000)
 cguRec1
 cguRec2
 cugTrans
-
-
+# look for what we're testing for with grecip (testing for both cases at once)
+#need to rephrase the hypothesis 
 
 ```
 ## 5)
