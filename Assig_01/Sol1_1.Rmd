@@ -40,7 +40,7 @@ is more than two times higher when assuming tie independence, for null dyads the
 Given the differences in probability for mutual and asymmetric dyads we would argue that assuming tie independence would not be reasonable.
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=TRUE}
 
 set.seed(1908)
 library(sna)
@@ -88,7 +88,7 @@ attr <- read.csv("attr.csv")
 permutations <- 5000
 
 res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=T)
-res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=F)
+#res_netlm <- netlm(y=trade2007, x=trade2006, reps=permutations, nullhyp="qapy", intercept=F)
 res_netlm$names <- c("intercept", "trade_06")
 
 summary(res_netlm)
@@ -129,7 +129,7 @@ Hp. 4 (region): The amounts of goods sold by a company is higher if the company 
 
 ```{r}
 # Hp 3.
-size_sender <- attr$size
+size_sender <- matrix(attr$size,18,18,byrow=FALSE)
 
 # Hp.4
 region_AB <- (attr$region == 1 | attr$region == 2)*1
