@@ -1,0 +1,32 @@
+---
+title: "Assignment 2"
+author: "Huang Yingshan, Kahlbacher Fabian, Wattenberg Yannick, Aggeler Samuel"
+date: "10/11/2021"
+output: html_document
+---
+
+
+
+
+# Task 2
+```{r}
+communication <- read.csv("data/communication.csv", header=FALSE)
+
+lawyeradvice <- as.matrix(read.csv("data/lawyeradvice.csv", header=FALSE))
+lawyeradvice <- lawyeradvice[2:37, 2:37]
+colnames(lawyeradvice) <- 1:36
+rownames(lawyeradvice) <- 1:36
+
+
+lawyerattr <- read.csv("data/lawyerattr.csv", header=TRUE)
+```
+
+## 1)
+```{r}
+
+```
+
+
+
+
+
