@@ -10,22 +10,90 @@ output: html_document
 
 # Task 2
 ```{r}
-communication <- read.csv("data/communication.csv", header=FALSE)
-
 lawyeradvice <- as.matrix(read.csv("data/lawyeradvice.csv", header=FALSE))
 lawyeradvice <- lawyeradvice[2:37, 2:37]
 colnames(lawyeradvice) <- 1:36
 rownames(lawyeradvice) <- 1:36
-
 
 lawyerattr <- read.csv("data/lawyerattr.csv", header=TRUE)
 ```
 
 ## 1)
 ```{r}
-
+#library(sna)
+library(network) 
+library(ergm)
 ```
 
+```{r}
+netw <- network(lawyeradvice, directed=TRUE)
+netw %v% "gender" <- lawyerattr$gender
+netw %v% "office_location" <- lawyerattr$office_location
+netw %v% "seniority" <- lawyerattr$seniority
+```
+
+```{r}
+model_gender <- ergm(netw ~ edges + nodematch('gender'))
+summary(model_gender)
+```
+- not significant for the gender
+
+```{r}
+N1 <- sum(lawyerattr$gender == 1)
+N2 <- sum(lawyerattr$gender == 2)
+
+tot_same_gender <- N1*(N1-1) + N2*(N2-1)
+
+idx1 <- which(lawyerattr$gender==1)
+idx2 <- which(lawyerattr$gender==2)
+same_gender_and_tie <- sum(lawyeradvice[idx1, idx1]) + sum(lawyeradvice[idx2, idx2])
+
+same_gender_and_tie / tot_same_gender
+```
+
+
+## 2)
+
+```{r}
+model3 <- ergm(
+  netw ~ 
+    edges +
+    mutual +
+    gwesp(decay=0.3,fixed=TRUE) + # caution: against transitivity
+    nodematch('gender') +
+    nodematch('office_location') +
+    nodeicov('seniority') +
+    nodeocov('seniority') +
+    absdiff('seniority')
+)
+```
+
+## 3)
+```{r}
+mcmc.diagnostics(model3, which="plots")
+```
+
+
+```{r}
+summary(model3)
+```
+
+
+
+## 4)
+```{r}
+model3gof <- gof(model3 ~ odegree + idegree + distance + model)
+model3gof
+
+par(mfrow=c(2,2),mar=c(5, 4, 4, 2))
+plot(model3gof)
+```
+
+## 5)
+```{r}
+summary(model3)
+```
+## 6)
 
 
 
