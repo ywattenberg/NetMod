@@ -1,0 +1,83 @@
+---
+title: "Assignment 2"
+author: "Huang Yingshan, Kahlbacher Fabian, Wattenberg Yannick, Aggeler Samuel"
+date: "10/11/2021"
+output: html_document
+---
+
+# Task 1
+```{r}
+source("MHSim.R")
+```
+
+```{r}
+communication <- as.matrix(read.csv("data/communication.csv", header=F))
+```
+
+## 2)
+
+### 2.1)
+```{r}
+net_0 <- matrix(0, 38,38)
+
+sim_net <- MarkovChain(
+  net=net_0,
+  theta1=-0.6,
+  theta2=1.5,
+)
+
+test <- MarkovChain(
+  net=net_0,
+  theta1=-0.6,
+  theta2=1.5,
+  burnin=100, 
+  thinning = 100,
+  nNet = 100
+)
+```
+
+### 2.2)
+```{r}
+plot(sim_net$statSim[,1], sim_net$statSim[,2], type='l')
+```
+no because ....
+
+
+## 3)
+```{r}
+
+sim_net_2 <- MarkovChain(
+  net=net_0,
+  theta1=-1.737,
+  theta2=1.632,
+)
+
+mean(sim_net_2$statSim[,1])
+mean(sim_net_2$statSim[,2])
+
+mean(sim_net$statSim[,1])
+mean(sim_net$statSim[,2])
+
+z1(communication)
+z2(communication)
+
+
+
+dim(sim_net$netSim)
+
+sim_net$netSim[,,1]
+
+plot(sim_net$statSim[,1], sim_net$statSim[,2], type='l')
+
+
+# compare with ergm
+library(network) 
+library(ergm)
+netw <- network(communication, directed=TRUE)
+
+ergm(netw ~ edges + mutual) #gwesp(decay=0.3,fixed=TRUE)
+#edges    mutual  
+#-1.737   1.632
+```
+
+

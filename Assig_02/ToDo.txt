@@ -1,0 +1,12 @@
+try to do task with X 
+
+# Task1
+- X-finsh task 1
+- ask: MHSim correct formula to calc p(.)
+- MarkovChain function takes very long... normal?
+# Task 2
+-   1) not sure: ask how to interpret the values
+-   3) not sure: ask what do you want? 
+-   4) already sufficent?
+- X-5) ? understand the interpretation
+- X-6) formulate hypotheses
