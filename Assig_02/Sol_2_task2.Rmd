@@ -116,9 +116,16 @@ summary(model2)
 ```
 The following interpretation of individual parameters assumes always that the 
 other parameters are held constant.
-
-- edges: ??????????????????????????????????????????????
+# on page 81 and following the single paramters are described
+- edges: ?????????????????????????????????????????????? adds statistic of amount of edges
 - mutual: If a tie is reciprocated 
+- gwesp.fixed.0.3 : checks whether there is an indication of transitivity in a three way tie
+- nodematch.office_location : counts the number of edges (i,j) for which office(i) == office(j). This is the so called uniform homophily.
+- nodematch.gender : counts the number of edges (i,j) for which 
+gender(i) == gender(j).
+- nodeicov.seniority : covariante for in-edges. This adds a single network statistic equal to the total value of seniority(j) for all edges (i,j)
+-nodeocov.seniorty : covariante for out-edges. This adds a single netowrk statistic equal to the total value of seniority(i) for all edges (i,j)
+-absdiff.seniority : adds a network statistic equal to the sum of abs(seniority[i] - seniortiy[j])^pow for all edges (i,j)
 
 ```{r}
 plogis(coef(model2)[['edges']] + coef(model2)[['mutual']])
