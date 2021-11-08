@@ -5,14 +5,10 @@ date: "10/11/2021"
 output: html_document
 ---
 
-
-
-
 # Task 2
 ```{r}
 set.seed(123)
 ```
-
 
 ```{r}
 lawyeradvice <- as.matrix(read.csv("data/lawyeradvice.csv", header=FALSE))
@@ -83,7 +79,7 @@ model2 <- ergm(
 ```
 
 ## 3)
-```{r}
+```{r fig.height=10}
 mcmc.diagnostics(model2, which="plots")
 ```
 The algorithm MCMC converged after 3 iterations. The model diagnostics look good as the attributes (sufficient statistics) of the simulated networks have low autocorrelation and are more or less normally distributed. 
@@ -92,7 +88,7 @@ The algorithm MCMC converged after 3 iterations. The model diagnostics look good
 ```{r}
 model2gof <- gof(model2 ~ odegree + idegree + distance + model)
 
-par(mfrow=c(2,2),mar=c(5, 4, 4, 2))
+par(mfrow=c(4,1),mar=c(5, 4, 4, 2))
 plot(model2gof)
 ```
 Evaluation of GOF of the specified ERGM model:
@@ -120,48 +116,27 @@ the data well.
 summary(model2)
 ```
 ```{r}
-# Interpretation: significance, sign, odds
+# Interpretation: significance, sign, conclusion about hypothesis
 ```
+- edges: The 'edges' parameter is significantly different from 0 on the 5% significance level. Usually this parameter serves as an intercept and is not interpreted.
 
-The following interpretation of individual parameters assumes always that the 
-other parameters are held constant.
+- mutual: The 'mutual' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if it reciprocates an existing tie. Therefore, we have evidence for reciprocity. 
 
-- edges: The 'edges' parameter is significantly different from 0 on the 5% significance level. Usually this parameter serves as an intercept and is not interpreted. Right???????????????????
+- gwesp.fixed.0.3: The 'gwesp.fixed.0.3' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if there are more shared partners. Therefore, we have evidence for transitivity and not against transitivity as stated in the exercise.
 
-- mutual: The 'mutual' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicate that the probability of a tie increases if a tie is reciprocated.  
-```{r}
-odds <- exp( coef(model2)[['edges']] + coef(model2)[['mutual']] )
-```
-The odds of a tie that is reciprocating an existing tie is by a factor of `r odds` higher than if the tie is not reciprocating.
+- nodematch.office_location: The 'nodematch.office_location' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if two lawyers are from the same office. Therefore, we have evidence for office location homophily.
 
-- gwesp.fixed.0.3: The 'gwesp.fixed.0.3' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicate that the probability of a tie increases if ??? (transitivity increases?). 
-```{r}
-odds <- exp( coef(model2)[['edges']] + coef(model2)[['gwesp.fixed.0.3']] )
-```
-odds ...
+- nodematch.gender: The 'nodematch.gender' parameter is not significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if two lawyers are from the same gender. Therefore, we have evidence for gender homophily. 
 
-- nodematch.office_location: The 'nodematch.office_location' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicate that the probability of a tie increases if two employees are from the same office. 
-```{r}
-odds <- exp( coef(model2)[['edges']] + coef(model2)[['nodematch.office_location']] )
-```
-The odds of a tie between two lawyers which are from the same office is by a factor of `r odds` higher than if they would be from a different office.
+- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) decreases the more senior the lawyer i is. Therefore, we have evidence that lawyers who are in the firm for longer ask fewer others for advice. 
 
-- nodematch.gender: The 'nodematch.gender' parameter is not significantly different from 0 on the 5% significance level. Therefore, there is evidence that the probability of a tie does not change if lawyers are of the same or of different gender.
+- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) increases the more senior the lawyer j is. Therefore, we have evidence that lawyers who have been at the firm longer are more likely to be ask for advice. 
 
-- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) decreases the more senior the lawyer i is. 
-```{r}
-odds <- exp( coef(model2)[['edges']] + coef(model2)[['nodeicov.seniority']] )
-```
-odds ....???
+- absdiff.seniority : The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie between lawyers decreases the more absolute difference they have in seniority. Therefore, we have evidance against that lawyers who have been at the firm for a similar amount of time are more likely to ask each other for advice. 
 
-- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) increases the more senior the lawyer j is. 
-
-odds ....???
-
-- absdiff.seniority : The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie between lawyers decreases the more absolute difference they have in seniority.
-
-odds ....???
-
+?????????????????????????
+delete this party below? 
+?????????????????????????
 
 # on page 81 and following the single paramters are described
 - edges: ?????????????????????????????????????????????? adds statistic of amount of edges
@@ -177,6 +152,9 @@ gender(i) == gender(j).
 
 
 ## 6)
+?????????????????????????
+2 new hypotheses have to be formulated
+?????????????????????????
 ```{r}
 head(lawyerattr)
 ```
