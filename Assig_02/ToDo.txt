@@ -5,8 +5,8 @@ try to do task with X
 - ask: MHSim correct formula to calc p(.)
 - MarkovChain function takes very long... normal?
 # Task 2
--   1) not sure: ask how to interpret the values
--   3) not sure: ask what do you want? 
+-	2) evidence agains transitivity? H0: there is transitivity, H1: no transitivity??
+-   3) not sure
 -   4) already sufficent?
-- X-5) ? understand the interpretation
-- X-6) formulate hypotheses
+-   5) show example, more interpretation needed? Always say if the hypotheses stated in the assignment is 		accepted or not
+-   6) to do: formulate hypotheses
