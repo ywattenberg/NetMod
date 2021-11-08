@@ -41,7 +41,7 @@ sim_net_mutual
 ```{r}
 plot(sim_net$statSim[,1], sim_net$statSim[,2], type='l')
 ```
-The observed adjacency matrix has 311 edges and 74 reciprocal dyads, while the mean count of edges and reciprocal dyads of simulated networks based on parameters $\theta_1=-0.6,\theta_2=1.5$ is 774 and 275, which implies that the suggested values of parameters cannot be used to describe communication networks. So they are not good estimates of parameters for communication networks.
+The observed adjacency matrix has `communication_edge` edges and `communication_mutual` reciprocal dyads, while the mean count of edges and reciprocal dyads of simulated networks based on parameters $\theta_1=-0.6,\theta_2=1.5$ is `sim_net_edge` and `sim_net_edge`, which implies that the suggested values of parameters cannot be used to describe communication networks. So they are not good estimates of parameters for communication networks.
 
 ## 3)
 From the dyads-edge plot of simulated networks using suggested estimates in (2), we know counts of both reciprocal dyads and edges are larger than that of observed network. Thus, we should decrease both estimated coefficient of edges counts ($\theta_1$) and estimated coefficient of reciprocal dyads counts ($\theta_2$). First, control $\theta_2$ and adjust $\theta_1$ to -1.
@@ -53,8 +53,10 @@ sim_net_2 <- MarkovChain(
   theta2=1.5,
 )
 
-mean(sim_net_2$statSim[,1])
-mean(sim_net_2$statSim[,2])
+sim_net_2_edge <- mean(sim_net_2$statSim[,1])
+sim_net_2_mutual <- mean(sim_net_2$statSim[,2])
+sim_net_2_edge
+sim_net_2_mutual
 
 plot(sim_net_2$statSim[,1], sim_net_2$statSim[,2], type='l')
 
@@ -68,7 +70,7 @@ plot(sim_net_2$statSim[,1], sim_net_2$statSim[,2], type='l')
 # #edges    mutual  
 # #-1.737   1.632
 ```
-From the simulation result, we obtain expected value of edges and mutual dyads are 586 and 182, which is closer to the observed value but still larger. Then keep decreasing $\theta_1$ to -1.5.
+From the simulation result, we obtain expected value of edges and mutual dyads are `sim_net_2_edge` and `sim_net_2_mutual`, which is closer to the observed value but still larger. Then keep decreasing $\theta_1$ to -1.5.
 ```{r}
 sim_net_3 <- MarkovChain(
   net=net_0,
@@ -77,11 +79,13 @@ sim_net_3 <- MarkovChain(
 )
 ```
 ```{r}
-mean(sim_net_3$statSim[,1])
-mean(sim_net_3$statSim[,2])
+sim_net_3_edge <- mean(sim_net_3$statSim[,1])
+sim_net_3_mutual <- mean(sim_net_3$statSim[,2])
+sim_net_3_edge
+sim_net_3_mutual
 plot(sim_net_3$statSim[,1], sim_net_3$statSim[,2], type='l')
 ```
-From the simulation results above, the expected value of edges and reciprocal dyads change to 374 and 93, which is rather closer to observed value but still larger than 311 and 74. Then, we decrease $\theta_1$ but decrease step from 0.5 to 0.1, changing $\theta_1$ from -1.5 to -1.6.
+From the simulation results above, the expected value of edges and reciprocal dyads change to `sim_net_3_edge` and `sim_net_3_mutual`, which is rather closer to observed value but still larger than 311 and 74. Then, we decrease $\theta_1$ but decrease step from 0.5 to 0.1, changing $\theta_1$ from -1.5 to -1.6.
 ```{r}
 sim_net_4 <- MarkovChain(
   net=net_0,
@@ -90,11 +94,13 @@ sim_net_4 <- MarkovChain(
 )
 ```
 ```{r}
-mean(sim_net_4$statSim[,1])
-mean(sim_net_4$statSim[,2])
+sim_net_4_edge <- mean(sim_net_4$statSim[,1])
+sim_net_4_mutual <- mean(sim_net_4$statSim[,2])
+sim_net_4_edge
+sim_net_4_mutual
 plot(sim_net_4$statSim[,1], sim_net_4$statSim[,2], type='l')
 ```
-From the simulation results above, the expected value of edges and reciprocal dyads change to 340 and 81, which is rather closer to observed value but still a bit larger. Thus, we keep decreasing $\theta_1$ with the step 0.1, changing $\theta_1$ to -1.7.
+From the simulation results above, the expected value of edges and reciprocal dyads change to `sim_net_4_edge` and `sim_net_4_mutual`, which is rather closer to observed value but still a bit larger. Thus, we keep decreasing $\theta_1$ with the step 0.1, changing $\theta_1$ to -1.7.
 ```{r}
 sim_net_5 <- MarkovChain(
   net=net_0,
@@ -103,11 +109,13 @@ sim_net_5 <- MarkovChain(
 )
 ```
 ```{r}
-mean(sim_net_5$statSim[,1])
-mean(sim_net_5$statSim[,2])
+sim_net_5_edge <- mean(sim_net_5$statSim[,1])
+sim_net_5_mutual <- mean(sim_net_5$statSim[,2])
+sim_net_5_edge
+sim_net_5_mutual
 plot(sim_net_5$statSim[,1], sim_net_5$statSim[,2], type='l')
 ```
-From the simulation results above, the expected value of edges and reciprocal dyads change to 307 and 69, which is quite closer to real value but a bit smaller this time. Thus, we keep $\theta_1$ stable and increase $\theta_2$ with a small step 0.1, changing $\theta_2$ from 1.5 to 1.6.
+From the simulation results above, the expected value of edges and reciprocal dyads change to `sim_net_5_edge` and `sim_net_5_mutual`, which is quite closer to real value but a bit smaller this time. Thus, we keep $\theta_1$ stable and increase $\theta_2$ with a small step 0.1, changing $\theta_2$ from 1.5 to 1.6.
 ```{r}
 sim_net_6 <- MarkovChain(
   net=net_0,
@@ -116,9 +124,11 @@ sim_net_6 <- MarkovChain(
 )
 ```
 ```{r}
-mean(sim_net_6$statSim[,1])
-mean(sim_net_6$statSim[,2])
+sim_net_6_edge <- mean(sim_net_6$statSim[,1])
+sim_net_6_mutual <- mean(sim_net_6$statSim[,2])
+sim_net_6_edge
+sim_net_6_mutual
 plot(sim_net_6$statSim[,1], sim_net_6$statSim[,2], type='l')
 ```
-From the simulation result, expected value of edges and reciprocal dyads are 320 and 76, which is rather close to the observed value, 311 and 74. Thus, $\theta_1=-1.7,\theta_2=1.6$ can be a better estimates of parameters in ERGM to describe communication network.
+From the simulation result, expected value of edges and reciprocal dyads are `sim_net_6_edge` and `sim_net_6_mutual`, which is rather close to the observed value, 311 and 74. Thus, $\theta_1=-1.7,\theta_2=1.6$ can be a better estimates of parameters in ERGM to describe communication network.
 
