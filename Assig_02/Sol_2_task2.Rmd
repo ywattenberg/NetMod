@@ -52,18 +52,17 @@ same_gender_and_tie <- sum(lawyeradvice[idx1, idx1]) + sum(lawyeradvice[idx2, id
 same_gender_and_tie / tot_same_gender
 ```
 The conditional probability of observing a tie between two employees
-i and j which have the same gender is `same_gender_and_tie / tot_same_gender`. 
+i and j which have the same gender is `r same_gender_and_tie / tot_same_gender`. 
 
 ```{r}
 # probability of observing a tie
 theta1 <- model_gender$coef['edges']
 p <- exp(theta1)/(1+exp(theta1))
 ```
-The probability of a tie if we do not condition on same gender of lawyers is `p`. Which is about the same as the conditional probability of a tie if lawyers are from the same gender. This is expected since gender homophily is not significant in the model above. 
+The probability of a tie if we do not condition on same gender of lawyers is `r p`. Which is about the same as the conditional probability of a tie if lawyers are from the same gender. This is expected since gender homophily is not significant in the model above. 
 
 
 ## 2)
-
 ```{r}
 model2 <- ergm(
   netw ~ 
@@ -82,32 +81,26 @@ model2 <- ergm(
 ```{r fig.height=10}
 mcmc.diagnostics(model2, which="plots")
 ```
-The algorithm MCMC converged after 3 iterations. The model diagnostics look good as the attributes (sufficient statistics) of the simulated networks have low autocorrelation and are more or less normally distributed. 
+The MCMC algorithm converged after three iterations. The model diagnostics look well as the attributes (sufficient statistics) of the simulated networks have low auto correlation and are more or less normally distributed. 
 
 ## 4)
 ```{r}
 model2gof <- gof(model2 ~ odegree + idegree + distance + model)
-
-par(mfrow=c(4,1),mar=c(5, 4, 4, 2))
 plot(model2gof)
 ```
 Evaluation of GOF of the specified ERGM model:
-Desired property of the GOF plots: The observed values (black) should be centered
-in the simulated values. Which means they should be more or less close to the median.
+Desired property of the GOF plots: The observed values (black) should be centered in the simulated values. Which means they should be more or less close to the median and in the 95% confidence interval (grey lines) of the corresponding simulated statistics.  
 
-- out degree: The observed values of the out degree are mostly very similar to 
-the simulated ones. Except for the spike at the out degree 21/22.  
-- in degree: The observed values of the in degree are mostly very similar to 
-the simulated ones. Except for the spike at the in degree 2 and the minor 
-spikes at 20/22.
-- minimum geodesic distance: As the other plots the observed values are similar
-to the simulated ones. There is a bigger difference for the proportion of dyads
-which have a  minimum geodesic distance of two. 
-- model: The observed attributes fit very well with the simulated attributes
-from the model.
+- out degree: The observed values of the out degree are mostly very similar to the simulated ones. There is a spike at a out degree of 21/22 which is not any more in the confidence interval of the simulated values. The observed values of the out degrees of 1, 3, 14, 20 are at the boundary of the confidence interval of the simulated values.
+
+- in degree: The observed values of the in degree are mostly very similar to the simulated ones. There is a spike at the in degrees of 2 and 9 which are not any more in the confidence interval of the simulated values. The observed values of the in degrees of 3, 5, 17, 20, 21 are at the boundary of the confidence interval of the simulated values.
+
+- minimum geodesic distance: The observed values do not fit the simulated values very well. However, the general trend is preserved among different distances. Especially, a minimum geodesic distance of 2 and 3 are not fit well. 
+
+- model: The observed attributes fit very well with the simulated attributes from the model.
 
 To summarize, there are some differences between the observed statistics and 
-the statistics calculated from the simulated model but in general the model fits
+the statistics calculated from the simulated model, but in general the model fits
 the data well. 
 
 
@@ -115,53 +108,51 @@ the data well.
 ```{r}
 summary(model2)
 ```
-```{r}
-# Interpretation: significance, sign, conclusion about hypothesis
-```
 - edges: The 'edges' parameter is significantly different from 0 on the 5% significance level. Usually this parameter serves as an intercept and is not interpreted.
 
-- mutual: The 'mutual' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if it reciprocates an existing tie. Therefore, we have evidence for reciprocity. 
+- mutual: The 'mutual' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if it reciprocates an existing tie. Therefore, we have evidence for reciprocity and hypothesis 1 is supported. 
 
-- gwesp.fixed.0.3: The 'gwesp.fixed.0.3' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if there are more shared partners. Therefore, we have evidence for transitivity and not against transitivity as stated in the exercise.
+- gwesp.fixed.0.3: The 'gwesp.fixed.0.3' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if there are more shared partners. Therefore, we have evidence for transitivity and hypothesis 2 is not supported. 
 
-- nodematch.office_location: The 'nodematch.office_location' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if two lawyers are from the same office. Therefore, we have evidence for office location homophily.
+- nodematch.office_location: The 'nodematch.office_location' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if two lawyers are from the same office. Therefore, we have evidence for office location homophily and that hypothesis 3 is supported.
 
-- nodematch.gender: The 'nodematch.gender' parameter is not significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie increases if two lawyers are from the same gender. Therefore, we have evidence for gender homophily. 
+- nodematch.gender: The 'nodematch.gender' parameter is not significantly different from 0 on the 5% significance level. Therefore, we do not have evidence for gender homophily and hypothesis 4 is not supported.
 
-- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) decreases the more senior the lawyer i is. Therefore, we have evidence that lawyers who are in the firm for longer ask fewer others for advice. 
+- nodeocov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) decreases the more senior the lawyer i is. Therefore, we have evidence that lawyers who are in the firm for longer ask fewer others for advice and that hypothesis 5 is supported.   
 
-- nodeicov.seniority: The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) increases the more senior the lawyer j is. Therefore, we have evidence that lawyers who have been at the firm longer are more likely to be ask for advice. 
+- nodeicov.seniority: The 'nodeicov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is positive which indicates that the probability of a tie from lawyer i -> j (i ask j for advice) increases the more senior the lawyer j is. Therefore, we have evidence that lawyers who have been at the firm longer are more likely to be asked for advice and that hypothesis 6 is supported. 
 
-- absdiff.seniority : The 'nodeocov.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie between lawyers decreases the more absolute difference they have in seniority. Therefore, we have evidance against that lawyers who have been at the firm for a similar amount of time are more likely to ask each other for advice. 
-
-?????????????????????????
-delete this party below? 
-?????????????????????????
-
-# on page 81 and following the single paramters are described
-- edges: ?????????????????????????????????????????????? adds statistic of amount of edges
-- mutual: If a tie is reciprocated 
-- gwesp.fixed.0.3 : checks whether there is an indication of transitivity in a three way tie
-- nodematch.office_location : counts the number of edges (i,j) for which office(i) == office(j). This is the so called uniform homophily.
-- nodematch.gender : counts the number of edges (i,j) for which 
-gender(i) == gender(j).
-- nodeicov.seniority : covariante for in-edges. This adds a single network statistic equal to the total value of seniority(j) for all edges (i,j)
--nodeocov.seniorty : covariante for out-edges. This adds a single netowrk statistic equal to the total value of seniority(i) for all edges (i,j)
--absdiff.seniority : adds a network statistic equal to the sum of abs(seniority[i] - seniortiy[j])^pow for all edges (i,j)
-
-
+- absdiff.seniority : The 'absdiff.seniority' parameter is significantly different from 0 on the 5% significance level. The parameter is negative which indicates that the probability of a tie between lawyers decreases the more absolute difference they have in seniority. Therefore, we have evidence that lawyers who have been at the firm for a similar amount of time are more likely to ask each other for advice. Thus, hypothesis 7 is supported.
 
 ## 6)
-?????????????????????????
-2 new hypotheses have to be formulated
-?????????????????????????
+
+- Hypothesis 8: Men (gender==1) are more likely to be asked for advice.
+$\sum_{v \in V} 1_{\text{gender of v=1}}*indegree(v)$
+
+- Hypothesis 9: Men (gender==1) are more likely to ask for advice.
+$\sum_{v \in V} 1_{\text{gender of v=1}}*outdegree(v)$
+
 ```{r}
-head(lawyerattr)
+model3 <- ergm(
+  netw ~ 
+    edges +
+    mutual +
+    gwesp(decay=0.3,fixed=TRUE) + # caution: against transitivity
+    nodematch('office_location') +
+    nodematch('gender') +
+    nodeocov('seniority') +
+    nodeicov('seniority') +
+    absdiff('seniority') +
+    nodeifactor('gender', levels = 1) +
+    nodeofactor('gender', levels = 1)
+)
 ```
 
+```{r}
+summary(model3)
+```
+Paramter interpreatation:
 
+- nodeifactor.gender.1: The parameter 'nodeifactor.gender.1' is not significant on the 5% significance level. Therefore, hypothesis 8 is not supported.
 
-
-
-
-
+- nodeofactor.gender.1: The parameter 'nodeofactor.gender.1' is not significant on the 5% significance level. Therefore, hypothesis 9 is not supported.
