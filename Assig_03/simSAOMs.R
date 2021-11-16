@@ -1,0 +1,196 @@
+# Network Modeling - HS 2021
+# C.Stadtfeld, A. Uzaheta, K. Mepham, V.Amati 
+# Assignment 3 - Task 1
+
+#*******************************************************************************
+# Task 1.1                                                                  ---- 
+# The function "simulation" simulates the network evolution between 
+# two time points. 
+# Given the network at time t1, denoted by x1, the function simulates the 
+# steps of the continuous-time Markov chain defined by a SAOM with outdegree and 
+# reciprocity statistics. Unconditional simulation is used.
+# The function returns the network at time t2, denoted by x2.
+# The structure of the algorithm is describe in an appendix of the slides of
+# practical 3.
+#*******************************************************************************
+
+#' Simulate the network evolution between two time points
+#'
+#' @param n number of actors in the network
+#' @param x1 network at time t1
+#' @param lambda rate parameter
+#' @param beta1 outdegree parameter
+#' @param beta2 reciprocity parameter
+#'
+#' @return network at time t2
+#'
+#' @examples
+#' netT1 <- matrix(
+#'   c(0, 1, 0, 0, 0,
+#'     0, 0, 0, 1, 0,
+#'     0, 0, 0, 1, 1,
+#'     1, 0, 1, 0, 0), 
+#'   nrow = 5, ncol =  5, byRow = TRUE)
+#' netT2 <- simulation(5, netT1, 4, -2, 0.5)
+simulation <- function(n, x1, lambda, beta1, beta2) {
+  t <- 0 # time
+  x <- x1
+  while (t < 1) {
+    dt <- rexp(1, n * lambda)
+    # --- MISSING ---
+  }
+  x2 <- x
+}
+
+#*******************************************************************************
+# Task 1.2                                                                  ----
+# Consider the two adjacency matrices in the files net1.csv and net2.csv.
+# Estimate the parameters of the SAOM with outdegree and reciprocity statistics
+#  using the function `siena07`
+#*******************************************************************************
+
+# ---MISSING---
+
+#*******************************************************************************
+# Task 1.3                                                                  ----
+# Conditioning on the first observation, generate 1,000 simulations of the 
+# network evolution
+# Compute the cumulative indegree and outdegree distribution for each 
+# simulated network.
+# Save the results in a matrix, named indegDist/outDist, in which rows are
+# the simulations and columns are the type of triads.
+#*******************************************************************************
+
+#' Helper function: Computes the cumulative degree distribution 
+#'
+#' @param network input adjacency matrix 
+#' @param type string indicating the type of degree distribution being computed.
+#'   Available types: "indegree" or "outdegree" 
+#' @param maxDeg integer with the highest degree value consider
+#'
+#' @return a integer vector with the cumulative degree distribution
+#'
+#' @examples
+#' net <- matrix(
+#'   c(0, 1, 0, 0, 0,
+#'     0, 0, 0, 1, 0,
+#'     0, 0, 0, 1, 1,
+#'     1, 0, 1, 0, 0), 
+#'   nrow = 5, ncol =  5, byRow = TRUE)
+#' degreeDistribution(net, type = "indegree")
+#' degreeDistribution(net, type = "outdegree")
+degreeDistribution <- function(network, type = c("indegree", "outdegree"),
+                               maxDeg = 8) {
+  if (type == "indegree") {
+    nodeDegree <- colSums(network)
+  } else {
+    nodeDegree <- rowSums(network)
+  }
+  
+  possibleValues <- seq(0, min(ncol(network) - 1, maxDeg))
+  degreeDist <- sapply(possibleValues, function(x) sum(nodeDegree == x))
+  cumulativeDegree <- cumsum(degreeDist)
+  names(cumulativeDegree) <- sprintf('Deg%02d', possibleValues)
+  return(cumulativeDegree)
+}
+
+# ---MISSING---
+
+#*******************************************************************************
+# Task 2.4                                                                  ----
+# Fill out the missing part and run the code to obtain the violin plots
+#*******************************************************************************
+# install.packages(c("tidyverse", "ggplot2"))  # # run this line to install 
+library(tidyverse)
+library(ggplot2)
+
+# Given the array indegDist, create a data frame from it in a long format, 
+# do the same for the observed network statistics at time t2.
+# Named the data frame "indegDistDf" and "obsIndegData"
+
+indegDistDf <- data.frame(indegDist) %>% 
+  select(where(~ var(.) > 0)) %>%  # Drop statistics with zero variance
+  pivot_longer(
+    starts_with("Deg"),
+    names_to = "degree", names_pattern = "Deg(.+)",
+    values_to = "nnodes"
+  ) 
+
+
+# Compute the statistics of the observed network at time t2
+obsIndeg <- # ---MISSING---
+obsIndegData <- data.frame(
+  degree = str_extract(names(obsIndeg), "\\d+"),
+  nnodes = obsIndeg) %>% 
+  filter(degree %in% unique(indegDistDf$degree)) 
+
+# The following code computes the 5% and the 95% quantiles
+# of the distribution of the number of nodes by degree
+percIndeg <- indegDistDf %>% 
+  group_by(degree) %>% 
+  summarise(
+    quant05 = quantile(nnodes, prob = 0.05),
+    quant95 = quantile(nnodes, prob = 0.95)) %>% 
+  pivot_longer(
+    starts_with("quant"),
+    names_to = "quant", names_pattern = "quant(.+)",
+    values_to = "nnodes")
+
+
+# The following code produces the violin plots
+ggplot(indegDistDf, aes(degree, nnodes)) +
+  geom_violin(trim = FALSE, scale = "width") +
+  stat_summary(fun = mean, geom = "point", size = 2) +
+  geom_boxplot(width = 0.2, fill = "gray", outlier.shape = 4) +
+  geom_point(data = obsIndegData, 
+             col = "red", size = 2) +
+  geom_line(data = obsIndegData, aes(group = 1),
+            col = "red", size = 0.5) +
+  geom_line(data = percIndeg, mapping = aes(group = quant),
+            col = "gray", linetype = "dashed") +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  scale_x_discrete(labels = as.numeric)
+
+
+# Mahalanobis and p-value computation                                       ----
+# Compute the variance-covariance matrix from the statistics of the 
+# simulated networks.
+# Compute the inverse of this variance-covariance matrix.
+# Mean-center the statistics of the simulated networks.
+# Center the statistics of the observed network at time t2 using the means 
+# of the statistics of the simulated networks.
+# Compute the Mahalanobis distance using the mhd function for 
+# the statistics of the simulated networks and the observed network.
+# Compute the proportion of simulated networks where the distance is 
+# equal or greater than the distance in the observed network.
+
+#' Compute the Mahalanobis distance
+#'
+#' @param centeredValue numerical vector with the mean centered values
+#' @param invCov numerical matrix with the inverse of the variance-covariance
+#'   matrix
+#'
+#' @return numeric value with the Mahalanobis distance of centered value
+#'
+#' @examples
+#' mhd(c(2, 4) - c(1.5, 2), solve(matrix(c(1, 0.8, 0.8, 1), ncol = 2)))
+mhd <- function(centeredValue, invCov) {
+  t(centeredValue) %*% invCov %*% centeredValue
+}
+
+# ---MISSING---
+
+# So far, we have created the violinplot and the test on the 
+# Mahalanobis distance for the auxiliary statistic indegree.
+# Now, create the code to generate the violin plot and the test on the 
+# Mahalanobis distance for the auxiliary statistic outdegree
+
+# ---MISSING---
+
