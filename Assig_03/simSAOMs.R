@@ -14,6 +14,43 @@
 # practical 3.
 #*******************************************************************************
 
+#Helper functions to compute P(i->j;x,beta) for a given network and parameters
+
+# Compute outdegree for a given node i in the network x
+compute_outdegree <- function(i, x) {
+  return(sum(x[i,]))
+}
+
+# Compute reciprocity for a given node i in the network x
+compute_reciprocity <- function(i, x) {
+  sum <- 0
+  nvertices <- nrow(x)
+  for (j in 1:nvertices) {
+    sum <- sum + x[i,j]*x[j,i]   
+  }
+  return(sum)
+}
+
+# Compute the objective function f for a given node i in the network x and 
+# weights beta1 and beta2
+
+objective_function <- function(i, x, beta1, beta2) {
+  return(beta1 * compute_outdegree(i,x) +  beta2 * compute_reciprocity(i,x))
+}
+
+probability_change <- function(i, x, beta1, beta2) {
+  n <- nrow(x)
+  p <- rep(0., n)
+  sum <- 0
+  for (j in 1:nvertices) {
+    x[i,j] <- !x[i,j] # swap tie i -> j
+    p[j] <- exp(objective_function(i, x, beta1, beta2))
+    sum <- sum + p[j]
+    x[i,j] <- !x[i,j] # restore tie i -> j to original state
+  }
+  return(p/sum)
+}
+
 #' Simulate the network evolution between two time points
 #'
 #' @param n number of actors in the network
