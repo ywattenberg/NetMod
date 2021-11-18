@@ -37,7 +37,16 @@ simulation <- function(n, x1, lambda, beta1, beta2) {
   x <- x1
   while (t < 1) {
     dt <- rexp(1, n * lambda)
-    # --- MISSING ---
+    i = floor(runif(1, 1, n+1))
+    # choose j depending on the prob. P(i->j;x,beta) = 
+    # (exp(f(i, x^{+\- ij}, beta)))\(sum over all k of exp(f(i, x^{+\- ik}, beta)))
+    # f(i, x^{+\- ij}, beta) = sum over all k of beta_k * s_{ki}(x)
+    # Here k \in {1,2} and s_{1i} is outdegree of i, s_{2i} is reciprocity of i
+    if(i != j){
+      net[i, j] = !net[i,j] #flip chosen tie
+    }
+    # if j == i do nothing
+    t = t + dt
   }
   x2 <- x
 }
