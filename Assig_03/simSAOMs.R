@@ -2,6 +2,8 @@
 # C.Stadtfeld, A. Uzaheta, K. Mepham, V.Amati 
 # Assignment 3 - Task 1
 
+# Team: Huang Yingshan, Kahlbacher Fabian, Wattenberg Yannick, Aggeler Samuel
+
 #*******************************************************************************
 # Task 1.1                                                                  ---- 
 # The function "simulation" simulates the network evolution between 
@@ -42,7 +44,7 @@ probability_change <- function(i, x, beta1, beta2) {
   n <- nrow(x)
   p <- rep(0., n)
   sum <- 0
-  for (j in 1:nvertices) {
+  for (j in 1:n) {
     x[i,j] <- !x[i,j] # swap tie i -> j
     p[j] <- exp(objective_function(i, x, beta1, beta2))
     sum <- sum + p[j]
@@ -74,18 +76,16 @@ simulation <- function(n, x1, lambda, beta1, beta2) {
   x <- x1
   while (t < 1) {
     dt <- rexp(1, n * lambda)
-    i = floor(runif(1, 1, n+1))
-    # choose j depending on the prob. P(i->j;x,beta) = 
-    # (exp(f(i, x^{+\- ij}, beta)))\(sum over all k of exp(f(i, x^{+\- ik}, beta)))
-    # f(i, x^{+\- ij}, beta) = sum over all k of beta_k * s_{ki}(x)
-    # Here k \in {1,2} and s_{1i} is outdegree of i, s_{2i} is reciprocity of i
+    i <- sample(x=1:n, size=1)
+    j <- sample(x=1:n, size=1, prob=probability_change(i, x, beta1, beta2))
+    
     if(i != j){
-      net[i, j] = !net[i,j] #flip chosen tie
+      x[i, j] = !x[i,j] #flip chosen tie
     }
     # if j == i do nothing
     t = t + dt
   }
-  x2 <- x
+  return(x) # return x2
 }
 
 #*******************************************************************************
@@ -94,8 +94,43 @@ simulation <- function(n, x1, lambda, beta1, beta2) {
 # Estimate the parameters of the SAOM with outdegree and reciprocity statistics
 #  using the function `siena07`
 #*******************************************************************************
+library(RSiena)
 
-# ---MISSING---
+net1 <- as.matrix(read.csv('net1.csv', header=FALSE))
+net2 <- as.matrix(read.csv('net2.csv', header=FALSE))
+
+friendship <- sienaDependent(array(c(net1, net2), dim = c(22, 22, 2)))
+
+mydata <- sienaDataCreate(friendship)
+myeff <- getEffects(mydata)
+
+# Specifying the parameter of the algorithm
+myAlgorithm <- sienaAlgorithmCreate(
+  projname = "friends_res",
+  nsub = 4, n3 = 3000, seed = 1908
+)
+
+model0 <- siena07(myAlgorithm,
+                  data = mydata, effects = myeff,
+                  returnDeps = TRUE, useCluster = TRUE, nbrNodes = 3, batch = FALSE
+)
+
+model0
+
+#                             Estimate   Standard   Convergence 
+#                                         Error      t-ratio   
+#Rate parameters: 
+#  0       Rate parameter       4.4326  ( 0.7784   )             
+#
+#Other parameters: 
+# 1. eval outdegree (density)  -1.3178  ( 0.1675   )   0.0436    
+# 2. eval reciprocity           1.7292  ( 0.2840   )   0.0156    
+#
+#Overall maximum convergence ratio:    0.0518 
+
+
+
+
 
 #*******************************************************************************
 # Task 1.3                                                                  ----
@@ -140,10 +175,47 @@ degreeDistribution <- function(network, type = c("indegree", "outdegree"),
   return(cumulativeDegree)
 }
 
-# ---MISSING---
+
+eval_outdegree <- -1.3178
+eval_reciprocity <- 1.7292
+
+N <- 1000
+indegDist <- matrix(NA, 1000, 9)
+outdegDist <- matrix(NA, 1000, 9)
+for (i in 1:N) {
+  x2 <- simulation(
+    n=nrow(net1),
+    x1=net1,
+    lambda=model0$rate,
+    beta1=eval_outdegree,
+    beta2=eval_reciprocity
+  )
+  
+  indegDist[i,] <- degreeDistribution(
+    network=x2,
+    type = "indegree",
+    maxDeg = 8
+  )
+  
+  outdegDist[i,] <- degreeDistribution(
+    network=x2,
+    type = "outdegree",
+    maxDeg = 8
+  )
+}
+
+just_for_names <- degreeDistribution(
+  network=x2,
+  type = "outdegree",
+  maxDeg = 8
+)
+
+colnames(indegDist) <- names(just_for_names)
+colnames(outdegDist) <- names(just_for_names)
+
 
 #*******************************************************************************
-# Task 2.4                                                                  ----
+# Task 1.4                                                                  ----
 # Fill out the missing part and run the code to obtain the violin plots
 #*******************************************************************************
 # install.packages(c("tidyverse", "ggplot2"))  # # run this line to install 
@@ -162,9 +234,13 @@ indegDistDf <- data.frame(indegDist) %>%
     values_to = "nnodes"
   ) 
 
-
 # Compute the statistics of the observed network at time t2
-obsIndeg <- # ---MISSING---
+obsIndeg <- degreeDistribution(
+  network=net2,
+  type = "indegree",
+  maxDeg = 8
+)
+  
 obsIndegData <- data.frame(
   degree = str_extract(names(obsIndeg), "\\d+"),
   nnodes = obsIndeg) %>% 
@@ -232,6 +308,25 @@ mhd <- function(centeredValue, invCov) {
 }
 
 # ---MISSING---
+
+inv_cov <- solve(a=cov(indegDist))
+
+degree_means <- apply(X=indegDist, MARGIN=2, mean)
+mhd_indegree_sim <- rep(NA, N)
+for (i in 1:N) { #i=1
+  centeredValues <- indegDist[i,] - degree_means
+  mhd_indegree_sim[i] <- mhd(
+    centeredValue=centeredValues,
+    invCov=inv_cov
+  )
+}
+
+centeredValues_obs <- obsIndeg - degree_means
+mhd_indegree_obs <- mhd(
+  centeredValue=centeredValues_obs,
+  invCov=inv_cov
+)
+
 
 # So far, we have created the violinplot and the test on the 
 # Mahalanobis distance for the auxiliary statistic indegree.
