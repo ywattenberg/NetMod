@@ -80,7 +80,7 @@ simulation <- function(n, x1, lambda, beta1, beta2) {
     j <- sample(x=1:n, size=1, prob=probability_change(i, x, beta1, beta2))
     
     if(i != j){
-      x[i, j] = !x[i,j] #flip chosen tie
+      x[i, j] <- !x[i,j] #flip chosen tie
     }
     # if j == i do nothing
     t = t + dt
@@ -106,7 +106,7 @@ myeff <- getEffects(mydata)
 
 # Specifying the parameter of the algorithm
 myAlgorithm <- sienaAlgorithmCreate(
-  projname = "friends_res",
+  projname = "net1_net2",
   nsub = 4, n3 = 3000, seed = 1908
 )
 
@@ -327,6 +327,7 @@ mhd_indegree_obs <- mhd(
   invCov=inv_cov
 )
 
+indeg_precentage <- length(mhd_indegree_sim[mhd_indegree_sim  >= mhd_indegree_obs[1,1]])/N
 
 # So far, we have created the violinplot and the test on the 
 # Mahalanobis distance for the auxiliary statistic indegree.
