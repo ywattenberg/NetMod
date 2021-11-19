@@ -45,14 +45,14 @@ probability_change <- function(i, x, beta1, beta2) {
   p <- rep(0., n)
   sum <- 0
   for (j in 1:n) {
-    x[i,j] <- !x[i,j] # swap tie i -> j
+    if(i != j) 
+        x[i,j] <- !x[i,j] # swap tie i -> j
     p[j] <- exp(objective_function(i, x, beta1, beta2))
     sum <- sum + p[j]
-    x[i,j] <- !x[i,j] # restore tie i -> j to original state
+    x[i, j] <- !x[i,j] # restore tie i -> j to original state
   }
   return(p/sum)
 }
-
 #' Simulate the network evolution between two time points
 #'
 #' @param n number of actors in the network
@@ -180,9 +180,10 @@ eval_outdegree <- -1.3178
 eval_reciprocity <- 1.7292
 
 N <- 1000
-indegDist <- matrix(NA, 1000, 9)
-outdegDist <- matrix(NA, 1000, 9)
-for (i in 1:N) {
+
+simulate_get_dist <- function(run){
+  if(run %% 50 == 0)
+    print(run)
   x2 <- simulation(
     n=nrow(net1),
     x1=net1,
@@ -191,17 +192,25 @@ for (i in 1:N) {
     beta2=eval_reciprocity
   )
   
-  indegDist[i,] <- degreeDistribution(
+  indegDist <- degreeDistribution(
     network=x2,
     type = "indegree",
-    maxDeg = 8
   )
   
-  outdegDist[i,] <- degreeDistribution(
+  outdegDist <- degreeDistribution(
     network=x2,
     type = "outdegree",
-    maxDeg = 8
   )
+  
+  return(matrix(c(indegDist, outdegDist), nrow = 2, ncol =  9))
+}
+res <- lapply(seq(1,N), simulate_get_dist)
+
+indegDist <- matrix(NA, 1000, 9)
+outdegDist <- matrix(NA, 1000, 9)
+for(i in 1:N){
+  indegDist[i,] <- res[[i]][1,]
+  outdegDist[i,] <-res[[i]][2,]
 }
 
 just_for_names <- degreeDistribution(
@@ -314,16 +323,15 @@ inv_cov <- solve(a=cov(indegDist))
 degree_means <- apply(X=indegDist, MARGIN=2, mean)
 mhd_indegree_sim <- rep(NA, N)
 for (i in 1:N) { #i=1
-  centeredValues <- indegDist[i,] - degree_means
   mhd_indegree_sim[i] <- mhd(
-    centeredValue=centeredValues,
+    centeredValue=(indegDist[i,] - degree_means),
     invCov=inv_cov
   )
 }
 
-centeredValues_obs <- obsIndeg - degree_means
+centeredValues_obs <- 
 mhd_indegree_obs <- mhd(
-  centeredValue=centeredValues_obs,
+  centeredValue=(obsIndeg - degree_means),
   invCov=inv_cov
 )
 
@@ -335,4 +343,121 @@ indeg_precentage <- length(mhd_indegree_sim[mhd_indegree_sim  >= mhd_indegree_ob
 # Mahalanobis distance for the auxiliary statistic outdegree
 
 # ---MISSING---
+
+outdegDistDf <- data.frame(outdegDist) %>% 
+  select(where(~ var(.) > 0)) %>%  # Drop statistics with zero variance
+  pivot_longer(
+    starts_with("Deg"),
+    names_to = "degree", names_pattern = "Deg(.+)",
+    values_to = "nnodes"
+  ) 
+
+# Compute the statistics of the observed network at time t2
+obsOutdeg <- degreeDistribution(
+  network=net2,
+  type = "outdegree",
+  maxDeg = 8
+)
+
+obsOutdegData <- data.frame(
+  degree = str_extract(names(obsOutdeg), "\\d+"),
+  nnodes = obsOutdeg) %>% 
+  filter(degree %in% unique(OutdegDistDf$degree)) 
+
+# The following code computes the 5% and the 95% quantiles
+# of the distribution of the number of nodes by degree
+percOutdeg <- outdegDistDf %>% 
+  group_by(degree) %>% 
+  summarise(
+    quant05 = quantile(nnodes, prob = 0.05),
+    quant95 = quantile(nnodes, prob = 0.95)) %>% 
+  pivot_longer(
+    starts_with("quant"),
+    names_to = "quant", names_pattern = "quant(.+)",
+    values_to = "nnodes")
+
+
+# The following code produces the violin plots
+ggplot(outdegDistDf, aes(degree, nnodes)) +
+  geom_violin(trim = FALSE, scale = "width") +
+  stat_summary(fun = mean, geom = "point", size = 2) +
+  geom_boxplot(width = 0.2, fill = "gray", outlier.shape = 4) +
+  geom_point(data = obsOutdegData, 
+             col = "red", size = 2) +
+  geom_line(data = obsOutdegData, aes(group = 1),
+            col = "red", size = 0.5) +
+  geom_line(data = percOutdeg, mapping = aes(group = quant),
+            col = "gray", linetype = "dashed") +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  scale_x_discrete(labels = as.numeric)
+
+
+inv_cov <- solve(a=cov(outdegDist))
+out_degree_means <- apply(X=outdegDist, MARGIN=2, mean)
+mhd_outdegree_sim <- rep(NA, N)
+for (i in 1:N) { #i=1
+  mhd_outdegree_sim[i] <- mhd(
+    centeredValue=(outdegDist[i,] - out_degree_means),
+    invCov=inv_cov
+  )
+}
+
+mhd_outdegree_obs <- mhd(
+  centeredValue=(obsOutdeg - degree_means),
+  invCov=inv_cov
+)
+
+outdeg_precentage <- length(mhd_outdegree_sim[mhd_indegree_sim  >= mhd_outdegree_obs[1,1]])/N
+indeg_precentage
+outdeg_precentage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
