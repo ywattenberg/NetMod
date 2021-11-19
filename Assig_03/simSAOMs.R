@@ -214,7 +214,7 @@ for(i in 1:N){
 }
 
 just_for_names <- degreeDistribution(
-  network=x2,
+  network=net2,
   type = "outdegree",
   maxDeg = 8
 )
@@ -362,7 +362,7 @@ obsOutdeg <- degreeDistribution(
 obsOutdegData <- data.frame(
   degree = str_extract(names(obsOutdeg), "\\d+"),
   nnodes = obsOutdeg) %>% 
-  filter(degree %in% unique(OutdegDistDf$degree)) 
+  filter(degree %in% unique(outdegDistDf$degree)) 
 
 # The following code computes the 5% and the 95% quantiles
 # of the distribution of the number of nodes by degree
@@ -417,47 +417,4 @@ mhd_outdegree_obs <- mhd(
 outdeg_precentage <- length(mhd_outdegree_sim[mhd_indegree_sim  >= mhd_outdegree_obs[1,1]])/N
 indeg_precentage
 outdeg_precentage
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
