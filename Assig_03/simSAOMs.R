@@ -180,6 +180,7 @@ eval_outdegree <- -1.3178
 eval_reciprocity <- 1.7292
 
 N <- 1000
+set.seed(456745)
 
 simulate_get_dist <- function(run){
   if(run %% 50 == 0)
@@ -202,15 +203,15 @@ simulate_get_dist <- function(run){
     type = "outdegree",
   )
   
-  return(matrix(c(indegDist, outdegDist), nrow = 2, ncol =  9))
+  return(matrix(c(indegDist, outdegDist), nrow = 9, ncol =  2))
 }
 res <- lapply(seq(1,N), simulate_get_dist)
 
 indegDist <- matrix(NA, 1000, 9)
 outdegDist <- matrix(NA, 1000, 9)
 for(i in 1:N){
-  indegDist[i,] <- res[[i]][1,]
-  outdegDist[i,] <-res[[i]][2,]
+  indegDist[i,] <- res[[i]][,1]
+  outdegDist[i,] <-res[[i]][,2]
 }
 
 just_for_names <- degreeDistribution(
