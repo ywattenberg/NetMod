@@ -32,14 +32,12 @@ alcohol <- as.matrix(read.csv("Glasgow/alcohol.csv", header = TRUE))
 ```{r}
 # Compute Jacard index
 n <- nrow(f1)
-j_12 <- jaccard(f1,f2)
-j_23 <- jaccard(f2,f3)
 j_12 <- sum(f1*f2)/(n^2-sum(f1+f2==0))
 j_23 <- sum(f2*f3)/(n^2-sum(f2+f3==0))
 j_12
 j_23
 ```
-Jaccard index between wave 1 and wave 2 is `r j_12`, between wave 2 and wave 3 is `r j_23`, which are both higher than 0.3. It implies that data collection points are not too far apart, thus we could investigate the evolution of the friendship network of three time points.
+Jaccard index between wave 1 and wave 2 is `r j_12`, between wave 2 and wave 3 is `r j_23`. The Jaccard index is in each case higher than 0.3. Thus, it indicates that the data, for each wave, is sufficiently informative for applying SAOMs. 
 
 ### 1.2)
 ```{r}
@@ -48,34 +46,95 @@ gender <- coCovar(attributes$gender)
 age <- coCovar(attributes$age)
 alcoholConsumption <- varCovar(alcohol)
 logDistance <- coDyadCovar(logdistance)
-mydata <- sienaDataCreate(friendship, gender, age, alcoholConsumption, logDistance)
-mydata
+mydata <- sienaDataCreate(
+  friendship,
+  gender,
+  age,
+  alcoholConsumption,
+  logDistance
+)
+
 # Data description
 print01Report(mydata, modelname = "glasgow_init")
 ```
+
 ```{r}
 # Model specification
 # Include basic endogenous and exogenous variables
 myeff <- getEffects(mydata)
 myeff <- includeEffects(myeff, transTrip, cycle3)
+myeff <- includeEffects(myeff, egoX, altX, sameX, interaction1="gender")
+
 # H1: Students tend to be friends with popular pupils
-myeff <- includeEffects(myeff, inPopSqrt, outPopSqrt)
+myeff <- includeEffects(myeff, inPopSqrt) # outPopSqrt
+
 # H2: Students tend to be friends with pupils with similar alcohol consumption to their own
-myeff <- includeEffects(myeff, sameX, interaction1 = "alcoholConsumption")
+myeff <- includeEffects(myeff, sameX, interaction1 ="alcoholConsumption")
+
 # H3: Students tend to be friends with students that live in the same neighborhood (living nearby)
 myeff <- includeEffects(myeff, X, interaction1 = "logDistance")
 
 # Estimate the model
 myAlgorithm <- sienaAlgorithmCreate(
-  projname = "friends_res",
+  projname="friends_res",
   nsub = 3, n3 = 3000, seed = 1908
 )
-model.ev <- siena07(myAlgorithm,
-  data = mydata, effects = myeff, returnDeps = TRUE,
-  useCluster = TRUE, nbrNodes = 3
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 3
 )
+```
+
+```{r}
+t_conv.max <- function(model) {
+  sqrt(
+  t(apply(model$sf, 2, mean)) %*%
+  solve(cov(model$sf)) %*%
+  apply(model$sf, 2, mean)
+ )
+}
+```
+
+
+t-conv_k
+```{r}
 printSiena(model.ev)
 ```
+all good everything <= 0.1
+
+```{r}
+t_conv.max(model.ev)
+```
+not good 0.3297 (should be <= 0.2)
+
+fit it again
+```{r}
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4,
+  prevAns = model.ev
+)
+```
+
+t-conv_k
+```{r}
+printSiena(model.ev)
+```
+all good everything <= 0.1
+
+```{r}
+t_conv.max(model.ev1)
+```
+good now, since <= 0.2
+
 
 ### 1.3)
 ```{r}
@@ -122,17 +181,79 @@ gof1.gd <- sienaGOF(model.ev,
   verbose = FALSE, varName = "friendship",
   GeodesicDistribution
 )
+```
 
+
+
+```{r}
 plot(gof1.id)
+plot(gof1.id, center = TRUE, scale = TRUE)
+```
+Fits pretty well for all number of in-degrees. 
+
+
+```{r}
 plot(gof1.od)
-plot(gof1.gd)
+```
+The out-degree does not fits well. The only out-degrees which fit well are 0 and 4. 
+
+
+```{r}
 plot(gof1.tc, center = TRUE, scale = TRUE)
 ```
+- to be described ...
+
+```{r}
+plot(gof1.gd, center = TRUE, scale = TRUE)
+```
+- to be described ...
+
+In conclusion, does not fit to good. ...
+
+
+### 1.4 
+```{r}
+printSiena(model.ev)
+```
+
+
+H1: Students tend to be friends with popular pupils
+
+indegree - popularity (sqrt): 
+  - significantly different from 0 on the 5% significance level. 
+  - negative:  means that .... --> H1 is not supported .. usually different .. 
+  
+  
+H2: Students tend to be friends with pupils with similar alcohol
+consumption to their own
+
+same alcoholConsumption: 
+ - significantly different from 0 on the 5% significance level.
+ - positive: means that .... --> H2 is supported 
+ 
+ 
+H3: Students tend to be friends with students that live in the same
+neighborhood (living nearby)
+
+logDistance:
+ - significantly different from 0 on the 5% significance level.
+ - negative: means that: the greater the distance the smaller the probability to make a tie. --> H3 is supportet. 
+
 
 ## 2)
 ```{r}
 
+# hyp 4: Popular students tend to increase or maintain their level of alcohol consumption
+myeff <- includeEffects(myeff, indeg, interaction1="alcoholConsumption")
 
+# hyp 5: Students tend to adjust their alcohol consumption to that of their friends
+# maybe its that effect: avAlt
 ```
 
 
+
+
+### Questions
+- how does the model fits better or is it already okay? less variables?
+- parameter interpretation in general? meaning of theta does it depends on the effect ... it is different than before when we tried to estimate how the probability of a tie changes, ...
+- parameter estimates can be interpreted only while holding all other parameters constant? 
