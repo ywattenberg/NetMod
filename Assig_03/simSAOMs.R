@@ -183,7 +183,7 @@ N <- 1000
 set.seed(456745)
 
 simulate_get_dist <- function(run){
-  if(run %% 50 == 0)
+  if(run %% 100 == 0)
     print(run)
   x2 <- simulation(
     n=nrow(net1),
@@ -398,6 +398,8 @@ ggplot(outdegDistDf, aes(degree, nnodes)) +
     axis.ticks.y = element_blank()
   ) +
   scale_x_discrete(labels = as.numeric)
+
+##P value
 
 
 inv_cov <- solve(a=cov(outdegDist))
