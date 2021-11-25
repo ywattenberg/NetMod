@@ -1,0 +1,138 @@
+---
+title: "Assignment 3"
+author: "Huang Yingshan, Kahlbacher Fabian, Wattenberg Yannick, Aggeler Samuel"
+date: "11/25/2021"
+output: html_document
+---
+
+# Task 2
+```{r}
+# Loading the packages.
+library(RSiena)
+library(sna)
+library(jaccard)
+# Importing functions that are contained in .r files and will be useful for 
+# estimating the model and formatting the results 
+source("printSiena.R")
+source("siena07ToConverge.R")
+
+# loading data
+# Importing the adjacency matrices of the networks
+f1 <- as.matrix(read.csv("Glasgow/f1.csv", header = FALSE))
+f2 <- as.matrix(read.csv("Glasgow/f2.csv", header = FALSE))
+f3 <- as.matrix(read.csv("Glasgow/f3.csv", header = FALSE))
+# Reading the demographic, alcohol comsuption and log distance characteristics of pupils
+attributes <- read.csv("Glasgow/demographic.csv", header = TRUE)
+logdistance <- as.matrix(read.csv("Glasgow/logdistance.csv", header = FALSE))
+alcohol <- as.matrix(read.csv("Glasgow/alcohol.csv", header = TRUE))
+```
+
+## 1)
+### 1.1)
+```{r}
+# Compute Jacard index
+n <- nrow(f1)
+j_12 <- jaccard(f1,f2)
+j_23 <- jaccard(f2,f3)
+j_12 <- sum(f1*f2)/(n^2-sum(f1+f2==0))
+j_23 <- sum(f2*f3)/(n^2-sum(f2+f3==0))
+j_12
+j_23
+```
+Jaccard index between wave 1 and wave 2 is `r j_12`, between wave 2 and wave 3 is `r j_23`, which are both higher than 0.3. It implies that data collection points are not too far apart, thus we could investigate the evolution of the friendship network of three time points.
+
+### 1.2)
+```{r}
+friendship <- sienaDependent(array(c(f1, f2, f3), dim = c(n, n, 3)))
+gender <- coCovar(attributes$gender)
+age <- coCovar(attributes$age)
+alcoholConsumption <- varCovar(alcohol)
+logDistance <- coDyadCovar(logdistance)
+mydata <- sienaDataCreate(friendship, gender, age, alcoholConsumption, logDistance)
+mydata
+# Data description
+print01Report(mydata, modelname = "glasgow_init")
+```
+```{r}
+# Model specification
+# Include basic endogenous and exogenous variables
+myeff <- getEffects(mydata)
+myeff <- includeEffects(myeff, transTrip, cycle3)
+# H1: Students tend to be friends with popular pupils
+myeff <- includeEffects(myeff, inPopSqrt, outPopSqrt)
+# H2: Students tend to be friends with pupils with similar alcohol consumption to their own
+myeff <- includeEffects(myeff, sameX, interaction1 = "alcoholConsumption")
+# H3: Students tend to be friends with students that live in the same neighborhood (living nearby)
+myeff <- includeEffects(myeff, X, interaction1 = "logDistance")
+
+# Estimate the model
+myAlgorithm <- sienaAlgorithmCreate(
+  projname = "friends_res",
+  nsub = 3, n3 = 3000, seed = 1908
+)
+model.ev <- siena07(myAlgorithm,
+  data = mydata, effects = myeff, returnDeps = TRUE,
+  useCluster = TRUE, nbrNodes = 3
+)
+printSiena(model.ev)
+```
+
+### 1.3)
+```{r}
+# Goodness of Fit
+# Indegree distribution
+gof1.id <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  IndegreeDistribution
+)
+
+# Outdegree distribution
+gof1.od <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  OutdegreeDistribution
+)
+
+# Triad census
+gof1.tc <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  TriadCensus
+)
+
+# Geodesic distance
+GeodesicDistribution <- function(i, data, sims, period, groupName,
+                                 varName, levls = c(1:5, Inf), cumulative = TRUE) {
+  x <- networkExtraction(i, data, sims, period, groupName, varName)
+  require(sna)
+  a <- sna::geodist(symmetrize(x))$gdist
+  if (cumulative) {
+    gdi <- sapply(levls, function(i) {
+      sum(a <= i)
+    })
+  }
+  else {
+    gdi <- sapply(levls, function(i) {
+      sum(a == i)
+    })
+  }
+  names(gdi) <- as.character(levls)
+  gdi
+}
+
+gof1.gd <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  GeodesicDistribution
+)
+
+plot(gof1.id)
+plot(gof1.od)
+plot(gof1.gd)
+plot(gof1.tc, center = TRUE, scale = TRUE)
+```
+
+## 2)
+```{r}
+
+
+```
+
+
