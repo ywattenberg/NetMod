@@ -11,7 +11,7 @@ For better readability we copied some of the code to produce the plots, this
 is only in addiotion to and equivalant with the code in the r-file)
 ```{r}
 source('simSAOMs.r')
-
+```
 
 ```{r}
 ggplot(indegDistDf, aes(degree, nnodes)) +
