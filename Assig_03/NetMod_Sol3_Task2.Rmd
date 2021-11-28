@@ -10,7 +10,7 @@ output: html_document
 # Loading the packages.
 library(RSiena)
 library(sna)
-library(jaccard)
+#library(jaccard)
 # Importing functions that are contained in .r files and will be useful for 
 # estimating the model and formatting the results 
 source("printSiena.R")
@@ -60,9 +60,22 @@ print01Report(mydata, modelname = "glasgow_init")
 
 ```{r}
 # Model specification
-# Include basic endogenous and exogenous variables
+
+# Include basic endogenous 
 myeff <- getEffects(mydata)
-myeff <- includeEffects(myeff, transTrip, cycle3)
+
+myeff <- includeEffects(
+  myeff,
+  density,
+  recip,
+  transTrip,
+  transTies,
+  cycle3,
+  balance,
+  outActSqrt
+)
+
+# Include basic exogenous variables
 myeff <- includeEffects(myeff, egoX, altX, sameX, interaction1="gender")
 
 # H1: Students tend to be friends with popular pupils
@@ -73,11 +86,13 @@ myeff <- includeEffects(myeff, sameX, interaction1 ="alcoholConsumption")
 
 # H3: Students tend to be friends with students that live in the same neighborhood (living nearby)
 myeff <- includeEffects(myeff, X, interaction1 = "logDistance")
+```
 
+```{r}
 # Estimate the model
 myAlgorithm <- sienaAlgorithmCreate(
   projname="friends_res",
-  nsub = 3, n3 = 3000, seed = 1908
+  nsub = 4, n3 = 3000, seed = 1908
 )
 model.ev <- siena07(
   myAlgorithm,
@@ -85,7 +100,7 @@ model.ev <- siena07(
   effects=myeff,
   returnDeps = TRUE,
   useCluster = TRUE,
-  nbrNodes = 3
+  nbrNodes = 4
 )
 ```
 
@@ -131,9 +146,54 @@ printSiena(model.ev)
 all good everything <= 0.1
 
 ```{r}
-t_conv.max(model.ev1)
+t_conv.max(model.ev)
 ```
-good now, since <= 0.2
+still not good, 0.5655077
+
+
+fit it again
+```{r}
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4,
+  prevAns = model.ev
+)
+```
+
+```{r}
+printSiena(model.ev)
+```
+
+
+```{r}
+t_conv.max(model.ev)
+```
+
+```{r}
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4,
+  prevAns = model.ev
+)
+```
+
+```{r}
+printSiena(model.ev)
+```
+
+
+```{r}
+t_conv.max(model.ev)
+```
+now good: 0.1195636
 
 
 ### 1.3)
