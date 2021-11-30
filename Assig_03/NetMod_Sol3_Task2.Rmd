@@ -61,7 +61,7 @@ print01Report(mydata, modelname = "glasgow_init")
 ```{r}
 # Model specification
 
-# Include basic endogenous 
+# Include basic endogenous variables
 myeff <- getEffects(mydata)
 
 myeff <- includeEffects(
@@ -249,71 +249,277 @@ gof1.gd <- sienaGOF(model.ev,
 plot(gof1.id)
 plot(gof1.id, center = TRUE, scale = TRUE)
 ```
-Fits pretty well for all number of in-degrees. 
-
+All in-degrees from 0 to 8 are in the 95% confidence interval. Furthermore, the p-value is greater than 0.05 which indicates a good fit (as mentioned in the lecture).
 
 ```{r}
 plot(gof1.od)
 ```
-The out-degree does not fits well. The only out-degrees which fit well are 0 and 4. 
+All out-degrees from 0 to 8 are in the 95% confidence interval. Furthermore, the p-value is greater than 0.05 which indicates a good fit.
 
 
 ```{r}
 plot(gof1.tc, center = TRUE, scale = TRUE)
 ```
-- to be described ...
+GOF for triad census does not fit very well. The observed triad census for the following states 111U, 030C, 120C, 210 and 300 lies outside the 95%-confidence interval. Moreover, the p-value is equal to zero which indicates a poor fit. 
+
+
 
 ```{r}
 plot(gof1.gd, center = TRUE, scale = TRUE)
 ```
-- to be described ...
+The GOF for the Geodesic Distance does not fit well. Only the Geodesic Distance of one lies in the 95%-confidence interval the distances 2 to 5 are outside.
+Moreover, the p-value of zero indicates a poor fit. 
 
-In conclusion, does not fit to good. ...
+To conclude, the in and out-degree fit well but the model does not accurately represents Triadcensus and Geodesic Distance. Thus, the significance of the assessments based on this model should be interpreted carefully. 
 
+To fit out-degree well we tried to include different endogenous variables. The exogeneous variables were alway the same as specified in the code. Our different trials were: 
+1. endogenous: transTrip, cycle3
+2. endogenous: density, recip, transTrip, cycle3
+3. engogenous: density, recip, transTrip, transTies, cycle3, balance, outActSqrt
+The 3. combination of endogeneous variables worked well to fit out-degree. 
 
 ### 1.4 
 ```{r}
 printSiena(model.ev)
 ```
-
+The estimates of the coefficients and the corresponding standard errors are obtained from a model controlling for basic endogenous and exogenous
+variables (all variables can be seen in the summary output above). 
 
 H1: Students tend to be friends with popular pupils
 
-indegree - popularity (sqrt): 
-  - significantly different from 0 on the 5% significance level. 
-  - negative:  means that .... --> H1 is not supported .. usually different .. 
-  
+The coefficient for "indegree - popularity (sqrt)" is significantly different from 0 on the 5% significance level. The coefficient is positive which means that actors are more likely to name popular (high in-degree) students as their friends. Hence, H1 is supported.
   
 H2: Students tend to be friends with pupils with similar alcohol
 consumption to their own
 
-same alcoholConsumption: 
- - significantly different from 0 on the 5% significance level.
- - positive: means that .... --> H2 is supported 
- 
+The coefficient for "same alcoholConsumption" is significantly different from 0 on the 5% significance level. The coefficient is positive which means that an actor is more likely to name students as their friends if they have the same level of alcohol consumption. Same level of alcohol consumption is a proxy for similar level of alcohol consumption hence, H2 is supported.
  
 H3: Students tend to be friends with students that live in the same
 neighborhood (living nearby)
 
-logDistance:
- - significantly different from 0 on the 5% significance level.
- - negative: means that: the greater the distance the smaller the probability to make a tie. --> H3 is supportet. 
-
+The coefficient for "logDistance" is significantly different from 0 on the 5% significance level. The coefficient is negative which means that actors are less likely to make ties to students which are further away. Hence, H3 is supported.
 
 ## 2)
+
 ```{r}
+friendship <- sienaDependent(array(c(f1, f2, f3), dim = c(n, n, 3)))
+drinkbeh <- sienaDependent(alcohol, type = "behavior")
 
-# hyp 4: Popular students tend to increase or maintain their level of alcohol consumption
-myeff <- includeEffects(myeff, indeg, interaction1="alcoholConsumption")
+gender <- coCovar(attributes$gender)
+age <- coCovar(attributes$age)
+logDistance <- coDyadCovar(logdistance)
 
-# hyp 5: Students tend to adjust their alcohol consumption to that of their friends
-# maybe its that effect: avAlt
+mydata2 <- sienaDataCreate(
+  friendship,
+  drinkbeh,
+  gender,
+  age,
+  logDistance
+)
+
+mydata2
 ```
 
 
+```{r}
+# Data description
+print01Report(mydata2, modelname = "glasgow_coEvol")
+```
+The Jaccard Index for the first wave (0.304) and second wave (0.351) are at least 0.3 thus, the data is informative.
+
+```{r}
+moran1 <- nacf(f1, alcohol[, 1], lag.max = 1, type = "moran",
+neighborhood.type = "out", mode = "digraph")
+moran2 <- nacf(f2, alcohol[, 2], lag.max = 1, type = "moran",
+neighborhood.type = "out", mode = "digraph")
+moran3 <- nacf(f3, alcohol[, 3], lag.max = 1, type = "moran",
+neighborhood.type = "out", mode = "digraph")
+autocorr <- rbind(moran1, moran2, moran3)
+autocorr[, 2]
+```
+The Moran Index is about 0.3 in all waves which is low but indicates some behavioral structure in the network. 
+
+## 2.1)
+```{r}
+# Model specification
+# Include basic endogenous 
+myeff <- getEffects(mydata2)
+
+myeff <- includeEffects(
+  myeff,
+  density,
+  recip,
+  transTrip,
+  transTies,
+  cycle3,
+  balance,
+  outActSqrt
+)
+
+# Include basic exogenous variables
+myeff <- includeEffects(myeff, egoX, altX, sameX, interaction1="gender")
+
+# H1: Students tend to be friends with popular pupils
+myeff <- includeEffects(myeff, inPopSqrt) # outPopSqrt
+
+# H2: Students tend to be friends with pupils with similar alcohol consumption to their own
+myeff <- includeEffects(myeff, sameX, interaction1 ="drinkbeh")
+
+# H3: Students tend to be friends with students that live in the same neighborhood (living nearby)
+myeff <- includeEffects(myeff, X, interaction1 = "logDistance")
 
 
-### Questions
-- how does the model fits better or is it already okay? less variables?
-- parameter interpretation in general? meaning of theta does it depends on the effect ... it is different than before when we tried to estimate how the probability of a tie changes, ...
-- parameter estimates can be interpreted only while holding all other parameters constant? 
+# H4: Popular students tend to increase or maintain their level of alcohol consumption
+myeff <- includeEffects(myeff, outdeg, indeg,
+                        name = "drinkbeh", interaction1 = "friendship")
+
+# H5:  Students tend to adjust their alcohol consumption to that of their friends
+myeff <- includeEffects(myeff, avSim,
+                        name = "drinkbeh", interaction1="friendship")
+```
+## 2.2)
+```{r}
+# Estimate the model
+myAlgorithm <- sienaAlgorithmCreate(
+  projname="friends_res",
+  nsub = 4, n3 = 1000, seed = 1908
+)
+
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata2,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4
+)
+```
+
+```{r}
+model.ev
+```
+All convergence t-ratios are below 0.1 but the overall is larger than 0.2 (2.0040).
+
+```{r}
+myAlgorithm <- sienaAlgorithmCreate(
+  projname="friends_res",
+  nsub = 4, n3 = 3000, seed = 1908
+)
+
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata2,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4,
+  prevAns = model.ev
+)
+```
+
+```{r}
+model.ev
+```
+All convergence t-ratios are below 0.1 but the overall is larger than 0.2 (0.3588).
+
+```{r}
+model.ev <- siena07(
+  myAlgorithm,
+  data=mydata2,
+  effects=myeff,
+  returnDeps = TRUE,
+  useCluster = TRUE,
+  nbrNodes = 4,
+  prevAns = model.ev
+)
+```
+
+```{r}
+model.ev
+```
+All convergence t-ratios are below 0.1 and the overall is below 0.2 (0.1359). The model converged well.
+
+
+```{r}
+# Goodness of Fit
+# Indegree distribution
+gof1.id <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  IndegreeDistribution
+)
+
+# Outdegree distribution
+gof1.od <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  OutdegreeDistribution
+)
+
+# Triad census
+gof1.tc <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  TriadCensus
+)
+
+# Geodesic distance
+gof1.gd <- sienaGOF(model.ev,
+  verbose = FALSE, varName = "friendship",
+  GeodesicDistribution
+)
+```
+
+
+```{r}
+plot(gof1.id)
+```
+All in-degrees from 0 to 8 are in the 95% confidence interval. Furthermore, the p-value is greater than 0.05 which indicates a good fit (as mentioned in the lecture).
+
+```{r}
+plot(gof1.od )
+```
+All out-degrees from 0 to 8 are in the 95% confidence interval. Furthermore, the p-value is greater than 0.05 which indicates a good fit.
+
+```{r}
+plot(gof1.tc, center=TRUE, scale=TRUE)
+```
+GOF for triad census does not fit very well. The observed triad census for the following states 030C, 120C, 210 and 300 lies outside the 95%-confidence interval. Moreover, the p-value is equal to zero which indicates a poor fit.
+
+```{r}
+plot(gof1.gd, center=T, scale=T)
+```
+The GOF for the Geodesic Distance does not fit well. Only the Geodesic Distance of one lies in the 95%-confidence interval the distances 2 to 5 are outside. Moreover, the p-value of zero indicates a poor fit. 
+
+To conclude, the in and out-degree fit well but the model does not accurately represents Triadcensus and Geodesic Distance. Thus, the significance of the assessments based on this model should be interpreted carefully.
+
+
+## 2.3)
+```{r}
+printSienaCoev(model.ev)
+```
+The estimates of the coefficients and the corresponding standard errors are obtained from a model controlling for basic endogenous and exogenous
+variables (all variables can be seen in the summary output above). 
+
+H4: Popular students tend to increase or maintain their level of
+alcohol consumption
+
+The coefficient for "drinkbeh indegree" is not significantly different from 0 on the 5% significance level. According to our model we do not have evidence that popularity affects the evolution of drinking behavior. Hence, H4 is not supported by our model.
+
+H5: Students tend to adjust their alcohol consumption to that of
+their friends.
+
+The coefficient for "drinkbeh average similarity" is significantly different from 0 on the 5% significance level. The coefficient is positive which means that an actor adjust his drinking behavior to the ones of his friends. Hence, H5 is supported.
+
+### Differences for hypotheses 1-3
+H1:
+The coefficient "indegree - popularity (sqrt)" is not significant any more unlike in the previous model. This means H1 is no longer supported in this model which indicates that the effects are now captured by behavior evolution. 
+
+H2: 
+The coefficient "same alcoholConsumption" is now called "same drinkbeh" and is still significant and positive as in the previous model. Thus, H2 is still supported which indicates that the effects are not better captured by the newly included behavior evolution variables.
+
+H3:
+The coefficient "logDistance" is still significant and negative as in the previous model. Thus, H3 is still supported.
+
+
+## 2.4)
+According to our model we have evidence that selection and influence processes are occurring. The underlying statistics that support H2 and H3 indicate that there are significant selection processes. Which means we have evidence that actors "select" their friends based on same alcohol consumption (H2) and the distance to them (H3). 
+
+Moreover, the underlying statistic that support H5 indicate that there are significant influence processes too. Meaning there is evidence that students tend to adjust their alcohol consumption to that of their friends. 
