@@ -5,7 +5,7 @@ date: "11/25/2021"
 output: pdf_document
 ---
 
-# Task 2
+# Task 1.4
 (This file only asses the GOF for the model produced from the simSAOMs.r file.
 For better readability we copied some of the code to produce the plots, this 
 is only in addiotion to and equivalant with the code in the r-file)
